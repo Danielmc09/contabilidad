@@ -1,0 +1,66 @@
+{% load humanize %}
+<div class="p-4 rounded-xl bg-white shadow-md space-y-4" role="dialog" aria-labelledby="modal-title">
+  <div class="modal-header border-b pb-2 mb-4">
+    <h2 id="modal-title" class="text-2xl font-bold">
+      Asiento Contable #{{ asiento.id }}
+    </h2>
+  <button type="button" class="btn-close" onclick="closeModal()"></button>
+</div>
+<div class="modal-body">
+    <!-- Información general -->
+    <div class="mb-4">
+      <div class="font-semibold mb-1 text-muted">📄 Información general:</div>
+      <div class="space-y-1 ms-2">
+        <div><strong>📅 Fecha:</strong> {{ asiento.fecha|date:'d/m/Y' }}</div>
+        <div><strong>📝 Descripción:</strong> {{ asiento.descripcion }}</div>
+      </div>
+    </div>
+    <!-- Totales -->
+    <div class="mb-4">
+      <div class="font-semibold mb-1 text-muted">💰 Totales:</div>
+      <div class="ms-2">
+        <div><strong>Debe:</strong> <span class="text-end">{{ asiento.total_debe_annotated|default:0|floatformat:2|intcomma }}</span></div>
+        <div><strong>Haber:</strong> <span class="text-end">{{ asiento.total_haber_annotated|default:0|floatformat:2|intcomma }}</span></div>
+        <div>
+          <strong>¿Balanceado?:</strong>
+    {% if asiento.esta_balanceado %}
+            <span class="text-success text-green-600 font-bold">✅ Sí</span>
+    {% else %}
+            <span class="text-danger text-red-600 font-bold">❌ No</span>
+    {% endif %}
+        </div>
+      </div>
+    </div>
+    <!-- Movimientos -->
+    <div class="mb-4">
+      <div class="font-semibold mb-1 text-muted">🧾 Movimientos:</div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped mt-2">
+          <thead class="bg-gray-100">
+      <tr>
+              <th class="text-left p-2">Cuenta</th>
+              <th class="text-left p-2">Código</th>
+              <th class="text-end p-2">Debe</th>
+              <th class="text-end p-2">Haber</th>
+      </tr>
+    </thead>
+    <tbody>
+            {% for mov in asiento.movimientos.all %}
+      <tr>
+        <td>{{ mov.cuenta.nombre }}</td>
+        <td>{{ mov.cuenta.codigo }}</td>
+              <td class="text-end">{{ mov.debe|default_if_none:0|floatformat:2|intcomma }}</td>
+              <td class="text-end">{{ mov.haber|default_if_none:0|floatformat:2|intcomma }}</td>
+      </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted">Sin movimientos</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+      </div>
+    </div>
+    <div class="d-flex justify-content-end mt-4">
+    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>

@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-giw4@q(g=x&0p-mxi#!5@6=a&tc&#rxm$f&5wal--&f2+g(qxh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'django.contrib.humanize',
+    "asientos_contables",
 ]
 
 MIDDLEWARE = [
@@ -74,10 +76,15 @@ WSGI_APPLICATION = "contabilidad.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "contabilidad_db",
+        "USER": "contabilidad_user",
+        "PASSWORD": "contabilidad_pass",
+        "HOST": "db",
+        "PORT": 5432,
     }
 }
+
 
 
 # Password validation
@@ -115,6 +122,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "asientos_contables" / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -1,0 +1,185 @@
+{% extends 'asientos_contables/base.html' %}
+{% block content %}
+<h2>Nuevo Asiento Contable</h2>
+
+<p class="text-muted small">La suma del debe debe ser igual a la suma del haber.</p>
+
+<form method="post"
+      hx-post="{% url 'asientos_contables:asiento_create' %}"
+      hx-target="#modal-body"
+      hx-swap="innerHTML">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    {% if formset.non_form_errors %}
+      <div class="alert alert-danger">
+        {% for error in formset.non_form_errors %}
+          {{ error }}<br>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="mb-3">
+        {{ form.fecha.label_tag }}
+        {{ form.fecha }}
+        {{ form.fecha.errors }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.descripcion.label_tag }}
+        {{ form.descripcion }}
+        {{ form.descripcion.errors }}
+    </div>
+
+    <h5>Movimientos</h5>
+    {{ formset.management_form }}
+
+    <div class="table-responsive mb-2">
+      <table class="table table-bordered align-middle mb-0" id="movimientos-table">
+        <thead class="table-light">
+            <tr>
+                <th>Cuenta</th>
+            <th class="text-end">Debe</th>
+            <th class="text-end">Haber</th>
+            <th class="text-center">Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mov_form in formset %}
+          <tr class="mov-row">
+                <td>{{ mov_form.cuenta }}</td>
+            <td class="text-end">{{ mov_form.debe }}</td>
+            <td class="text-end">{{ mov_form.haber }}</td>
+            <td class="text-center">
+              <button type="button" class="btn btn-outline-danger btn-sm btn-del-mov" title="Eliminar movimiento" aria-label="Eliminar movimiento">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+          {% if mov_form.errors %}
+          <tr>
+            <td colspan="4" class="text-danger small">
+              {% for field, errors in mov_form.errors.items %}
+                {{ field }}: {{ errors|join:", " }}<br>
+              {% endfor %}
+                </td>
+            </tr>
+          {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+    <div id="balance-status" class="mb-2"></div>
+
+    <div class="d-flex justify-content-end mb-3">
+      <button type="button" class="btn btn-outline-success btn-sm" id="add-movimiento">
+        <i class="bi bi-plus-circle"></i> Agregar Movimiento
+      </button>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+</form>
+
+<script>
+(function() {
+  // Clona la última fila visible y limpia valores
+  function cloneRow() {
+    const table = document.getElementById('movimientos-table');
+    const tbody = table.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr.mov-row');
+    if (rows.length === 0) return;
+    const lastRow = rows[rows.length - 1];
+    const newRow = lastRow.cloneNode(true);
+
+    newRow.querySelectorAll('input, select').forEach(el => {
+      if (el.type === 'text' || el.type === 'number') el.value = '';
+      if (el.tagName === 'SELECT') el.selectedIndex = 0;
+      if (el.name && el.name.includes('DELETE')) el.checked = false;
+    });
+
+    tbody.appendChild(newRow);
+    renumberFormset();
+    setBalanceListeners();
+    checkBalance();
+  }
+
+  // Elimina una fila
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.btn-del-mov')) {
+      const row = e.target.closest('tr');
+      const tbody = row.parentNode;
+      if (tbody.querySelectorAll('tr.mov-row').length > 1) {
+        row.remove();
+        renumberFormset();
+        checkBalance();
+      }
+    }
+  });
+
+  // Agrega nueva fila
+  document.getElementById('add-movimiento').addEventListener('click', function() {
+    cloneRow();
+  });
+
+  // Renumera los campos
+  function renumberFormset() {
+    const rows = document.querySelectorAll('tr.mov-row');
+    rows.forEach((row, idx) => {
+      row.querySelectorAll('input, select').forEach(input => {
+        if (input.name) {
+          input.name = input.name.replace(/-\d+-/, `-${idx}-`);
+        }
+        if (input.id) {
+          input.id = input.id.replace(/_\d+_/, `_${idx}_`);
+        }
+      });
+    });
+
+    const totalForms = document.getElementById('id_movimientos-TOTAL_FORMS');
+    if (totalForms) totalForms.value = rows.length;
+  }
+
+  // Validación de balance
+  function checkBalance() {
+    let totalDebe = 0, totalHaber = 0, hayValor = false;
+    document.querySelectorAll('input[name$="-debe"]').forEach(inp => {
+      const val = parseFloat(inp.value) || 0;
+      if (val) hayValor = true;
+      totalDebe += val;
+    });
+    document.querySelectorAll('input[name$="-haber"]').forEach(inp => {
+      const val = parseFloat(inp.value) || 0;
+      if (val) hayValor = true;
+      totalHaber += val;
+    });
+    const statusDiv = document.getElementById('balance-status');
+    if (!hayValor) {
+      statusDiv.innerHTML = '';
+      return;
+    }
+    if (totalDebe === totalHaber && totalDebe > 0) {
+      statusDiv.innerHTML = '<span class="text-success fw-bold">✅ Balanceado</span>';
+    } else {
+      statusDiv.innerHTML = '<span class="text-danger fw-bold">❌ Los movimientos no están balanceados.</span>';
+    }
+  }
+
+  // Escuchar cambios
+  document.querySelectorAll('input[name$="-debe"], input[name$="-haber"]').forEach(inp => {
+    inp.addEventListener('input', checkBalance);
+  });
+  checkBalance();
+
+  function setBalanceListeners() {
+    document.querySelectorAll('input[name$="-debe"], input[name$="-haber"]').forEach(inp => {
+      inp.removeEventListener('input', checkBalance); // Evita duplicados
+      inp.addEventListener('input', checkBalance);
+    });
+  }
+})();
+</script>
+{% endblock %} 
