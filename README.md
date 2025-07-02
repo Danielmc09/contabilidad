@@ -159,9 +159,16 @@ contabilidad/
 ---
 
 ## 🌐 URLs
-- Namespacing correcto (`asientos_contables:`).
-- Rutas para CRUD de cuentas y asientos.
-- Endpoints parciales para HTMX.
+- **Namespacing correcto** (`asientos_contables:`): Evita conflictos de nombres entre apps.
+- **Rutas para CRUD de cuentas**:
+  - `cuentas/` - Listado de cuentas contables
+  - `cuentas/nueva/` - Crear nueva cuenta
+  - `cuentas/<id>/editar/` - Editar cuenta existente
+  - `cuentas/<id>/eliminar/` - Eliminar cuenta
+- **Rutas para asientos**:
+  - `asientos/` - Listado de asientos contables
+  - `asientos/nuevo/` - Crear nuevo asiento
+  - `asientos/<id>/ver/` - Ver detalle de asiento
 
 ---
 
