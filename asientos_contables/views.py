@@ -9,6 +9,8 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
 import json
+from django.db.models.deletion import ProtectedError
+from django.contrib import messages
 
 class CuentaContableListView(ListView):
     """Vista para listar cuentas contables con búsqueda y soporte HTMX."""
@@ -97,26 +99,15 @@ class CuentaContableDeleteView(DeleteView):
     template_name = 'asientos_contables/cuentas/partials/delete_confirm.html'
 
     def post(self, request, *args, **kwargs):
-        return self.delete(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
-        self.object.delete()
-        cuentas = self.model.objects.all()
-        html_tabla = render_to_string(
-            'asientos_contables/cuentas/partials/list_items.html',
-            {'cuentas': cuentas},
-            request=request
-        )
-        # OOB: actualiza la tabla y cierra el modal
-        html_oob = (
-            '<div id="cuentas-table" hx-swap-oob="innerHTML">'
-            f'{html_tabla}'
-            '</div>'
-            '<div id="modal-body" hx-swap-oob="innerHTML"></div>'
-            '<script>closeModal();</script>'
-        )
-        return HttpResponse(html_oob)
+        try:
+            self.object.delete()
+            # Redirige o responde con éxito
+            return redirect('asientos_contables:cuenta_list')
+        except ProtectedError:
+            # Muestra un mensaje de error
+            messages.error(request, "No se puede eliminar la cuenta porque tiene movimientos asociados.")
+            return self.get(request, *args, **kwargs)
 
 # --- NUEVA VISTA PARA CREAR ASIENTO CONTABLE ---
 
