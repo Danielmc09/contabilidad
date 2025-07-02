@@ -41,6 +41,26 @@ Más allá de cumplir con los requisitos básicos, se tomaron decisiones de arqu
     ```bash
     cp .env.example .env
     ```
+    
+    **Nota:** El archivo `.env` contiene configuraciones sensibles y no se versiona. Asegúrese de configurar las variables según su entorno.
+
+### Variables de Entorno
+
+El proyecto utiliza variables de entorno para configuraciones sensibles. Las principales variables son:
+
+- **SECRET_KEY**: Clave secreta de Django
+- **DEBUG**: Modo debug (True/False)
+- **ALLOWED_HOSTS**: Hosts permitidos (separados por comas)
+- **DB_ENGINE**: Motor de base de datos
+- **DB_NAME**: Nombre de la base de datos
+- **DB_USER**: Usuario de la base de datos
+- **DB_PASSWORD**: Contraseña de la base de datos
+- **DB_HOST**: Host de la base de datos
+- **DB_PORT**: Puerto de la base de datos
+- **LANGUAGE_CODE**: Código de idioma
+- **TIME_ZONE**: Zona horaria
+- **STATIC_URL**: URL para archivos estáticos
+- **STATIC_ROOT**: Directorio para archivos estáticos en producción
 
 ### Ejecución con Docker
 
@@ -54,7 +74,12 @@ El proyecto está completamente dockerizado para una fácil configuración.
     El flag `-d` inicia los contenedores en segundo plano.
 
 2.  **Acceder a la aplicación:**
-    La aplicación estará disponible en `http://localhost:8000`.
+    Después de levantar el proyecto, accede a las siguientes URLs para usar la aplicación:
+
+    - **Cuentas contables:** [http://localhost:8000/cuentas/](http://localhost:8000/cuentas/)
+    - **Asientos contables:** [http://localhost:8000/asientos/](http://localhost:8000/asientos/)
+
+    > **Nota:** No hay una página de inicio en `/`, debes ingresar directamente a una de las rutas anteriores.
 
 3.  **Crear un Superusuario (Opcional):**
     Para acceder al panel de administración de Django, puede crear un superusuario:
@@ -69,6 +94,12 @@ Las pruebas unitarias están implementadas con Pytest. Para ejecutarlas, utilice
 
 ```bash
 docker-compose exec web pytest
+```
+
+O dentro del contenedor puedes ejecutar
+
+```bash
+pytest
 ```
 
 ---

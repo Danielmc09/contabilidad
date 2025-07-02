@@ -8,22 +8,23 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       - DB_HOST=db
-      - DEBUG=1
 
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: contabilidad_db
-      POSTGRES_USER: contabilidad_user
-      POSTGRES_PASSWORD: contabilidad_pass
+      POSTGRES_DB: ${DB_NAME:-contabilidad_db}
+      POSTGRES_USER: ${DB_USER:-contabilidad_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-contabilidad_pass}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U contabilidad_user -d contabilidad_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-contabilidad_user} -d ${DB_NAME:-contabilidad_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
