@@ -58,7 +58,13 @@
           <tr>
             <td colspan="4" class="text-danger small">
               {% for field, errors in mov_form.errors.items %}
-                {{ field }}: {{ errors|join:", " }}<br>
+                {% if field == "__all__" %}
+                  {% for error in errors %}
+                    {{ error }}<br>
+                  {% endfor %}
+                {% else %}
+                  {{ field }}: {{ errors|join:", " }}<br>
+                {% endif %}
               {% endfor %}
                 </td>
             </tr>
